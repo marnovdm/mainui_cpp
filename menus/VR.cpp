@@ -14,7 +14,7 @@ GNU General Public License for more details.
 Every setting here is an existing console variable; the pages are a front end for them.
 Numbers are arrow controls (exact values, hold the trigger on an arrow to repeat), shown in
 friendly units (cm, degrees, %) and converted back when written. Changes apply at once, so a
-change can be checked by closing the menu; Done also writes the config.
+change can be checked by closing the menu; leaving a page writes the config.
 */
 
 #include "Framework.h"
@@ -157,6 +157,7 @@ protected:
 
 	void _VidInit() override;
 	void Reload() override;
+	void Hide() override;
 
 private:
 	enum EKind { HEADING, CHECK, SPIN };
@@ -344,7 +345,7 @@ void CMenuVRPage::AddCommonButtons()
 	m_ResetBox.onPositive = VoidCb( &CMenuVRPage::ResetPage );
 	m_ResetBox.Link( this );
 
-	AddButton( L( "Done" ), NULL, PC_DONE, VoidCb( &CMenuVRPage::SaveAndPopMenu ));
+	AddButton( L( "Done" ), NULL, PC_DONE, VoidCb( &CMenuVRPage::Hide ));
 	AddButton( L( "Reset page" ), NULL, "gfx/shell/btn_vr_reset", m_ResetBox.MakeOpenEvent() );
 }
 
@@ -403,6 +404,14 @@ void CMenuVRPage::Reload()
 	BaseClass::Reload();
 	m_bLoading = false;
 	UpdateGrayed();
+}
+
+// however the page is left (Done, Escape, the controller's menu button) the config is written, so a change
+// survives a crash; the values themselves were already applied on every click
+void CMenuVRPage::Hide()
+{
+	EngFuncs::ClientCmd( false, "host_writeconfig\n" );
+	BaseClass::Hide();
 }
 
 /*
