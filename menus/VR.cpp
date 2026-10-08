@@ -440,13 +440,13 @@ private:
 		AddCommonButtons();
 
 		Heading( L( "Turning" ));
-		Choice( L( "Turn mode" ), "vr_smoothturn", "0", 2, turnNames, turnValues );
+		Choice( L( "Turn mode" ), "vr_smoothturn", "1", 2, turnNames, turnValues );
 		Number( L( "Snap angle / speed" ), "vr_turn_angle", "45", 15, 90, 5, 0, "\xc2\xb0" );
 		Number( L( "Comfort mask" ), "vr_comfort_mask", "0", 0, 100, 5, 0, " %", 100.0f );
 		Heading( L( "Height and crouching" ));
 		Number( L( "Extra eye height" ), "vr_height_adjust", "0.1", -30, 50, 1, 0, " cm", 100.0f );
-		CMenuCheckBox *crouch = Check( L( "Physical crouch" ), NULL, "0.85" );
-		CMenuVRSpin *below = Number( L( "Crouch below" ), "vr_enable_crouching", "0.85",
+		CMenuCheckBox *crouch = Check( L( "Physical crouch" ), NULL, "0" );
+		CMenuVRSpin *below = Number( L( "Crouch below" ), "vr_enable_crouching", "0",
 			50, 95, 5, 0, " %", 100.0f );
 		below->offBox = crouch;
 		below->offFallback = 85.0f;
@@ -458,7 +458,7 @@ private:
 		Choice( L( "Ladder direction" ), "vr_ladder_aim", "0", 2, dirNames, ladderValues );
 		Choice( L( "Jump / duck buttons" ), "vr_swap_jumpduck", "1", 2, layoutNames, layoutValues );
 		Choice( L( "Weapon hand" ), "vr_control_scheme", "0", 2, handNames, handValues );
-		Check( L( "Double-tap jump = crouch jump" ), "vr_quick_crouchjump", "1" );
+		Check( L( "Double-tap jump = crouch jump" ), "vr_quick_crouchjump", "0" );
 	}
 };
 
@@ -484,19 +484,19 @@ private:
 		Heading( L( "Weapons" ));
 		Choice( L( "Laser sight" ), "vr_lasersight", "1", 3, laserNames, laserValues );
 		Number( L( "Laser beam width" ), "vr_laser_width", "0.3", 0.05f, 1.0f, 0.05f, 2 );
-		Number( L( "Laser dot size" ), "vr_laser_dot_scale", "0.12", 0.02f, 0.5f, 0.02f, 2 );
+		Number( L( "Laser dot size" ), "vr_laser_dot_scale", "0.08", 0.02f, 0.5f, 0.02f, 2 );
 		Number( L( "Gun pitch" ), "vr_weapon_pitchadjust", "-20", -45, 10, 1, 0, "\xc2\xb0" );
 		Number( L( "Crowbar pitch" ), "vr_crowbar_pitchadjust", "-25", -45, 10, 1, 0, "\xc2\xb0" );
 		Check( L( "Scope stabilisation" ), "vr_scope_stabilise", "1" );
 		Heading( L( "Hands" ));
 		CMenuCheckBox *reach = Check( L( "Use by reaching out" ), "vr_gesture_triggered_use", "1" );
-		DependsOn( Number( L( "Reach distance" ), "vr_use_gesture_boundary", "0.35", 15, 60, 1, 0, " cm", 100.0f ), reach );
+		DependsOn( Number( L( "Reach distance" ), "vr_use_gesture_boundary", "0.25", 15, 60, 1, 0, " cm", 100.0f ), reach );
 		Check( L( "Haptic bumps (backpack, edges)" ), "vr_controller_tracking_haptic", "1" );
 
 		NextColumn();
 		Heading( L( "Weapon selection" ));
 		Check( L( "Weapon grid on Triangle" ), "vr_weapon_pointer", "1" );
-		CMenuCheckBox *stick = Check( L( "Stick weapon menu" ), "vr_weapon_stick_menu", "1" );
+		CMenuCheckBox *stick = Check( L( "Stick weapon menu" ), "vr_weapon_stick_menu", "0" );
 		DependsOn( Choice( L( "Stick up selects" ), "vr_weapon_stick_up_next", "0", 2, stickNames, stickValues ), stick );
 		DependsOn( Number( L( "Stick push to open" ), "vr_weapon_stick_threshold", "0.85", 0.5f, 1.0f, 0.05f, 2 ), stick );
 		DependsOn( Number( L( "Stick hold to open" ), "vr_weapon_stick_hold", "0.15", 0, 0.5f, 0.05f, 2, " s" ), stick );
@@ -531,9 +531,9 @@ private:
 		CMenuVRSpin *yaw = Number( L( "Turn inwards" ), "vr_hud_hand_yaw", "90", -180, 180, 5, 0, "\xc2\xb0" );
 		Position( NULL, "vr_hud_status_offset", "0.025 0.035 -0.02" );
 		Heading( L( "Weapon grid (hold Triangle)" ));
-		Number( L( "Size" ), "vr_weapon_pointer_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f );
-		Number( L( "Turn inwards" ), "vr_weapon_pointer_yaw", "60", -180, 180, 5, 0, "\xc2\xb0" );
-		Position( NULL, "vr_weapon_pointer_offset", "0 0.035 -0.15" );
+		Number( L( "Size" ), "vr_weapon_pointer_scale", "0.00065", 50, 200, 5, 0, " %", 200000.0f );
+		Number( L( "Turn inwards" ), "vr_weapon_pointer_yaw", "40", -180, 180, 5, 0, "\xc2\xb0" );
+		Position( NULL, "vr_weapon_pointer_offset", "0 0.035 -0.35" );
 
 		NextColumn();
 		CMenuCheckBox *hands = Check( L( "HUD on the hands" ), "vr_hud_hands", "1" );
@@ -542,9 +542,9 @@ private:
 		DependsOn( yaw, hands );
 		Heading( L( "Ammo panel (weapon hand)" ));
 		DependsOn( Number( L( "Size" ), "vr_hud_ammo_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f ), hands );
-		DependsOn( Number( L( "Tilt" ), "vr_hud_ammo_tilt", "-20", -90, 90, 5, 0, "\xc2\xb0" ), hands );
-		DependsOn( Number( L( "Turn inwards" ), "vr_hud_ammo_yaw", "90", -180, 180, 5, 0, "\xc2\xb0" ), hands );
-		Position( NULL, "vr_hud_ammo_offset", "0 0.025 0.08" );
+		DependsOn( Number( L( "Tilt" ), "vr_hud_ammo_tilt", "0", -90, 90, 5, 0, "\xc2\xb0" ), hands );
+		DependsOn( Number( L( "Turn inwards" ), "vr_hud_ammo_yaw", "20", -180, 180, 5, 0, "\xc2\xb0" ), hands );
+		Position( NULL, "vr_hud_ammo_offset", "-0.01 0.02 -0.05" );
 		Heading( L( "Close the menu to see a change" ));
 	}
 };
@@ -564,7 +564,7 @@ private:
 		AddCommonButtons();
 
 		Heading( L( "HUD, menu and cinema screen" ));
-		Number( L( "Distance" ), "vr_ui_distance", "1.5", 0.5f, 5.0f, 0.1f, 1, " m" );
+		Number( L( "Distance" ), "vr_ui_distance", "2.2", 0.5f, 5.0f, 0.1f, 1, " m" );
 		Number( L( "Width" ), "vr_ui_width", "2.6", 0.5f, 6.0f, 0.1f, 1, " m" );
 		Number( L( "Follow head beyond" ), "vr_panel_head_angle", "70", 0, 180, 5, 0, "\xc2\xb0" );
 		Number( L( "HUD glow" ), "vr_ui_glow_curve", "1.6", 0.5f, 4.0f, 0.1f, 1 );
@@ -576,7 +576,7 @@ private:
 		NextColumn();
 		Heading( L( "Cinema (scripted cameras)" ));
 		CMenuCheckBox *cinema = Check( L( "Show on a screen in the room" ), "vr_cinema", "1" );
-		DependsOn( Number( L( "Fade time" ), "vr_cinema_fade", "0.3", 0, 1, 0.1f, 1, " s" ), cinema );
+		DependsOn( Number( L( "Fade time" ), "vr_cinema_fade", "0.2", 0, 1, 0.1f, 1, " s" ), cinema );
 		Heading( L( "Rendering (after a restart)" ));
 		Number( L( "Resolution" ), "vr_supersampling", "1.0", 0.5f, 2.0f, 0.1f, 1, "x" );
 	}
