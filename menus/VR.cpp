@@ -271,7 +271,8 @@ void CMenuVRPage::Position( const char *heading, const char *cvar, const char *d
 	// "back" in the cvar, shown as forward
 	static const float scales[3] = { 100.0f, 100.0f, -100.0f };
 
-	Heading( heading );
+	if( heading )
+		Heading( heading );
 	for( int i = 0; i < 3; i++ )
 		Number( L( axes[i] ), cvar, def, -40.0f, 40.0f, 0.5f, 1, " cm", scales[i] )->component = i;
 }
@@ -523,19 +524,27 @@ private:
 		AddItem( banner );
 		AddCommonButtons();
 
-		Heading( L( "Health and ammo panels" ));
-		CMenuCheckBox *hands = Check( L( "HUD on the hands" ), "vr_hud_hands", "1" );
-		DependsOn( Number( L( "Size" ), "vr_hud_hand_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f ), hands );
-		DependsOn( Number( L( "Tilt" ), "vr_hud_hand_tilt", "-20", -90, 90, 5, 0, "\xc2\xb0" ), hands );
-		DependsOn( Number( L( "Turn inwards" ), "vr_hud_hand_yaw", "90", -180, 180, 5, 0, "\xc2\xb0" ), hands );
-		Position( L( "Health panel (from the off hand)" ), "vr_hud_status_offset", "0.025 0.035 -0.02" );
-		Position( L( "Ammo panel (from the weapon hand)" ), "vr_hud_ammo_offset", "0 0.025 0.08" );
-
-		NextColumn();
+		// left column: everything on the off hand, right column: the weapon hand
+		Heading( L( "Health panel (off hand)" ));
+		CMenuVRSpin *size = Number( L( "Size" ), "vr_hud_hand_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f );
+		CMenuVRSpin *tilt = Number( L( "Tilt" ), "vr_hud_hand_tilt", "-20", -90, 90, 5, 0, "\xc2\xb0" );
+		CMenuVRSpin *yaw = Number( L( "Turn inwards" ), "vr_hud_hand_yaw", "90", -180, 180, 5, 0, "\xc2\xb0" );
+		Position( NULL, "vr_hud_status_offset", "0.025 0.035 -0.02" );
 		Heading( L( "Weapon grid (hold Triangle)" ));
 		Number( L( "Size" ), "vr_weapon_pointer_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f );
 		Number( L( "Turn inwards" ), "vr_weapon_pointer_yaw", "60", -180, 180, 5, 0, "\xc2\xb0" );
-		Position( L( "Grid position (from the off hand)" ), "vr_weapon_pointer_offset", "0 0.035 -0.15" );
+		Position( NULL, "vr_weapon_pointer_offset", "0 0.035 -0.15" );
+
+		NextColumn();
+		CMenuCheckBox *hands = Check( L( "HUD on the hands" ), "vr_hud_hands", "1" );
+		DependsOn( size, hands );
+		DependsOn( tilt, hands );
+		DependsOn( yaw, hands );
+		Heading( L( "Ammo panel (weapon hand)" ));
+		DependsOn( Number( L( "Size" ), "vr_hud_ammo_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f ), hands );
+		DependsOn( Number( L( "Tilt" ), "vr_hud_ammo_tilt", "-20", -90, 90, 5, 0, "\xc2\xb0" ), hands );
+		DependsOn( Number( L( "Turn inwards" ), "vr_hud_ammo_yaw", "90", -180, 180, 5, 0, "\xc2\xb0" ), hands );
+		Position( NULL, "vr_hud_ammo_offset", "0 0.025 0.08" );
 		Heading( L( "Close the menu to see a change" ));
 	}
 };
