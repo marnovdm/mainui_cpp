@@ -37,6 +37,7 @@ public:
 	void Setup( float minValue, float maxValue, float range );
 
 	void SetDisplayPrecision( short precision );
+	void SetDisplaySuffix( const char *suffix ) { m_szSuffix = suffix; } // unit after a number, e.g. " cm"
 
 	void SetCurrentValue( const char *stringValue );
 	void SetCurrentValue( float curValue );
@@ -50,6 +51,9 @@ private:
 	const char *MoveLeft();
 	const char *MoveRight();
 	void Display();
+	int ArrowAtCursor();
+	void Step( int dir, int event );
+	void RepeatHeldArrow();
 
 	CImage m_szBackground;
 	CImage m_szLeftArrow;
@@ -63,8 +67,15 @@ private:
 
 	CMenuBaseArrayModel *m_pModel;
 	short m_iFloatPrecision;
+	const char *m_szSuffix;
 
 	char m_szDisplay[CS_SIZE];
+
+	// hold to repeat: the arrow held down with the mouse (-1 left, 1 right, 0 none),
+	// when it was pressed and how many steps the hold has made so far
+	int m_iHeldArrow;
+	int m_iHoldStart;
+	int m_iHoldSteps;
 };
 
 #endif // MENU_SPINCONTROL_H

@@ -23,7 +23,7 @@ GNU General Public License for more details.
 CMenuSpinControl::CMenuSpinControl()  : BaseClass(), m_szBackground(),
 		m_szLeftArrow(), m_szRightArrow(), m_szLeftArrowFocus(), m_szRightArrowFocus(),
 		m_flMinValue(0), m_flMaxValue(1), m_flCurValue(0), m_flRange(0.1), m_pModel( NULL ),
-		m_iFloatPrecision(0)
+		m_iFloatPrecision(0), m_szSuffix( "" ), m_iHeldArrow(0), m_iHoldStart(0), m_iHoldSteps(0)
 {
 	m_szBackground = 0;
 	m_szLeftArrow = UI_LEFTARROW;
@@ -49,9 +49,112 @@ void CMenuSpinControl::VidInit( void )
 	BaseClass::VidInit();
 }
 
+/*
+=================
+CMenuSpinControl::ArrowAtCursor
+
+-1 if the cursor is on the left arrow, 1 on the right one, 0 otherwise
+=================
+*/
+int CMenuSpinControl::ArrowAtCursor()
+{
+	Size arrow;
+	Point left, right;
+
+	// calculate size and position for the arrows
+	arrow.w = m_scSize.h + UI_OUTLINE_WIDTH * 2 * uiStatic.scaleX;
+	arrow.h = m_scSize.h + UI_OUTLINE_WIDTH * 2 * uiStatic.scaleY;
+
+	left.x = m_scPos.x + UI_OUTLINE_WIDTH * uiStatic.scaleX;
+	left.y = m_scPos.y - UI_OUTLINE_WIDTH * uiStatic.scaleY;
+	right.x = m_scPos.x + (m_scSize.w - arrow.w) - UI_OUTLINE_WIDTH * uiStatic.scaleX;
+	right.y = m_scPos.y - UI_OUTLINE_WIDTH * uiStatic.scaleY;
+
+	if( UI_CursorInRect( left, arrow ))
+		return -1;
+	if( UI_CursorInRect( right, arrow ))
+		return 1;
+	return 0;
+}
+
+/*
+=================
+CMenuSpinControl::Step
+
+one step left (dir < 0) or right; at the end of the range it buzzes and ends a hold
+=================
+*/
+void CMenuSpinControl::Step( int dir, int event )
+{
+	const char *sound = dir < 0 ? MoveLeft() : MoveRight();
+
+	_Event( event );
+	if( sound != uiStatic.sounds[SND_BUZZ] )
+	{
+		Display();
+		_Event( QM_CHANGED );
+	}
+	else m_iHeldArrow = 0; // end of the range: stop repeating
+
+	// repeated steps are silent, only the first one and the end of the range click
+	if( event != QM_CHANGED || sound == uiStatic.sounds[SND_BUZZ] )
+		PlayLocalSound( sound );
+}
+
+/*
+=================
+CMenuSpinControl::RepeatHeldArrow
+
+hold to repeat: while the mouse button (the VR trigger) is held on an arrow, step on after 0.4 s,
+8 steps a second, 20 a second once held for 1.5 s
+=================
+*/
+void CMenuSpinControl::RepeatHeldArrow()
+{
+	if( !m_iHeldArrow )
+		return;
+
+	// the cursor left the arrow or the control: stop
+	if( this != m_pParent->ItemAtCursor() || ArrowAtCursor() != m_iHeldArrow || FBitSet( iFlags, QMF_GRAYED|QMF_INACTIVE ))
+	{
+		m_iHeldArrow = 0;
+		return;
+	}
+
+	int held = uiStatic.realTime - m_iHoldStart;
+	int due;
+
+	if( held < 400 )
+		due = 0;
+	else if( held < 1500 )
+		due = ( held - 400 ) * 8 / 1000 + 1;
+	else due = 1100 * 8 / 1000 + 1 + ( held - 1500 ) * 20 / 1000;
+
+	while( m_iHeldArrow && m_iHoldSteps < due )
+	{
+		m_iHoldSteps++;
+		Step( m_iHeldArrow, QM_CHANGED );
+	}
+}
+
 bool CMenuSpinControl::KeyDown( int key )
 {
 	const char *sound = 0;
+
+	if( UI::Key::IsLeftMouse( key ) && FBitSet( iFlags, QMF_HASMOUSEFOCUS ))
+	{
+		// step on press, not on release, so holding the button can repeat
+		int dir = ArrowAtCursor();
+
+		if( !dir )
+			return false;
+
+		m_iHeldArrow = dir;
+		m_iHoldStart = uiStatic.realTime;
+		m_iHoldSteps = 0;
+		Step( dir, QM_PRESSED );
+		return true;
+	}
 
 	if( UI::Key::IsLeftArrow( key ) && !FBitSet( iFlags, QMF_MOUSEONLY ))
 		sound = MoveLeft();
@@ -78,39 +181,15 @@ CMenuSpinControl::Key
 */
 bool CMenuSpinControl::KeyUp( int key )
 {
-	const char *sound = 0;
-	Size arrow;
-	Point left, right;
-
-	if( UI::Key::IsLeftMouse( key ) && FBitSet( iFlags, QMF_HASMOUSEFOCUS ))
+	// the mouse steps on press (KeyDown) and repeats while held; the release only ends the hold
+	if( UI::Key::IsLeftMouse( key ) && m_iHeldArrow )
 	{
-		// calculate size and position for the arrows
-		arrow.w = m_scSize.h + UI_OUTLINE_WIDTH * 2 * uiStatic.scaleX;
-		arrow.h = m_scSize.h + UI_OUTLINE_WIDTH * 2 * uiStatic.scaleY;
-
-		left.x = m_scPos.x + UI_OUTLINE_WIDTH * uiStatic.scaleX;
-		left.y = m_scPos.y - UI_OUTLINE_WIDTH * uiStatic.scaleY;
-		right.x = m_scPos.x + (m_scSize.w - arrow.w) - UI_OUTLINE_WIDTH * uiStatic.scaleX;
-		right.y = m_scPos.y - UI_OUTLINE_WIDTH * uiStatic.scaleY;
-
-		// now see if either left or right arrow has focus
-		if( UI_CursorInRect( left, arrow ))
-			sound = MoveLeft();
-		else if( UI_CursorInRect( right, arrow ))
-			sound = MoveRight();
-	}
-
-	if( sound )
-	{
+		m_iHeldArrow = 0;
 		_Event( QM_RELEASED );
-		if( sound != uiStatic.sounds[SND_BUZZ] )
-		{
-			Display();
-			_Event( QM_CHANGED );
-		}
-		PlayLocalSound( sound );
+		return true;
 	}
-	return sound != NULL;
+
+	return false;
 }
 
 /*
@@ -126,6 +205,8 @@ void CMenuSpinControl::Draw( void )
 	Point scCenterPos;
 	Size scCenterBox;
 	uint textflags = ( iFlags & QMF_DROPSHADOW ) ? ETF_SHADOW : 0;
+
+	RepeatHeldArrow();
 
 	if( szStatusText && iFlags & QMF_NOTIFY )
 	{
@@ -226,6 +307,7 @@ const char *CMenuSpinControl::MoveLeft()
 	if( m_flCurValue > m_flMinValue )
 	{
 		m_flCurValue -= m_flRange;
+		m_flCurValue = roundf( m_flCurValue * 10000.0f ) / 10000.0f; // no float drift after many steps
 		if( m_flCurValue < m_flMinValue )
 			m_flCurValue = m_flMinValue;
 		sound = uiStatic.sounds[SND_MOVE];
@@ -242,6 +324,7 @@ const char *CMenuSpinControl::MoveRight()
 	if( m_flCurValue < m_flMaxValue )
 	{
 		m_flCurValue += m_flRange;
+		m_flCurValue = roundf( m_flCurValue * 10000.0f ) / 10000.0f;
 		if( m_flCurValue > m_flMaxValue )
 			m_flCurValue = m_flMaxValue;
 		sound = uiStatic.sounds[SND_MOVE];
@@ -326,7 +409,9 @@ void CMenuSpinControl::Display()
 	{
 		SetCvarValue( m_flCurValue );
 
-		snprintf( m_szDisplay, sizeof( m_szDisplay ), "%.*f", m_iFloatPrecision, m_flCurValue );
+		// no "-0.0" after stepping down to zero
+		float display = fabs( m_flCurValue ) < 0.00005f ? 0.0f : m_flCurValue;
+		snprintf( m_szDisplay, sizeof( m_szDisplay ), "%.*f%s", m_iFloatPrecision, display, m_szSuffix );
 	}
 	else
 	{

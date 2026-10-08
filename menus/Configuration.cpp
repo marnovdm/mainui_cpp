@@ -27,6 +27,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define ART_BANNER	     	"gfx/shell/head_config"
 
+void UI_VR_Menu( void );
+
 class CMenuOptions: public CMenuFramework
 {
 private:
@@ -61,6 +63,12 @@ void CMenuOptions::_Init( void )
 		PC_AUDIO, UI_Audio_Menu, QMF_NOTIFY );
 	AddButton( L( "GameUI_Video" ), L( "Change screen size, video mode and gamma" ),
 		PC_VIDEO, UI_Video_Menu, QMF_NOTIFY );
+	// only in engines with OpenXR (Lambda1VR-PC)
+	if( EngFuncs::GetCvarString( "vr_enable" )[0] )
+	{
+		AddButton( L( "VR" ), L( "Comfort, weapons, hand HUD and screen settings for VR" ),
+			"gfx/shell/btn_vr", UI_VR_Menu, QMF_NOTIFY, 'v' );
+	}
 	AddButton( L( "Touch" ), L( "Change touch settings and buttons" ),
 		PC_TOUCH, UI_Touch_Menu, QMF_NOTIFY, 't' );
 	AddButton( L( "GameUI_Joystick" ), L( "Change gamepad axis and button settings" ),
