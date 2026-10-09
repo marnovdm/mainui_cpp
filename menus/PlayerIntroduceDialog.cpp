@@ -86,9 +86,22 @@ void CMenuPlayerIntroduceDialog::_Init()
 
 	name.bAllowColorstrings = true;
 	name.SetRect( 188, 140, 270, 32 );
+	// suggest a name that passes the check, also when the dialog is shown again: in VR there is no keyboard
+	// to type another one, and both "name" and the user name the engine finds can be a rejected default
+	SET_EVENT_MULTI( name.onCvarGet,
+	{
+		CMenuField *self = (CMenuField*)pSelf;
+		const char *current = EngFuncs::GetCvarString( self->CvarName() );
+		const char *user = EngFuncs::GetCvarString( "ui_username" );
+		if( UI::Names::CheckIsNameValid( current ))
+			self->SetBuffer( current );
+		else if( UI::Names::CheckIsNameValid( user ))
+			self->SetBuffer( user );
+		else
+			self->SetBuffer( "VR Player" );
+	});
 	name.LinkCvar( "name" );
 	name.iMaxLength = MAX_SCOREBOARDNAME;
-	name.SetBuffer( EngFuncs::GetCvarString( "ui_username" ));
 
 	msgBox.SetMessage( L( "Please, choose another player name" ) );
 	msgBox.Link( this );
