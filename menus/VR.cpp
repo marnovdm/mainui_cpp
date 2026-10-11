@@ -588,6 +588,171 @@ ADD_MENU( menu_vr_handhud, CMenuVRHandHud, UI_VRHandHud_Menu );
 ADD_MENU( menu_vr_screen, CMenuVRScreen, UI_VRScreen_Menu );
 
 /*
+ * Counter-Strike (the engine's CS VR mode, -game cstrike / czero): its own page set, the Half-Life pages above
+ * stay as they are. Button mappings (vr_button_*) stay console-only.
+ */
+static bool UI_VRIsCounterStrike( void )
+{
+	return !stricmp( gMenu.m_gameinfo.gamefolder, "cstrike" ) || !stricmp( gMenu.m_gameinfo.gamefolder, "czero" );
+}
+
+class CMenuVRCSComfort : public CMenuVRPage
+{
+public:
+	CMenuVRCSComfort() : CMenuVRPage( "CMenuVRCSComfort" ) { }
+private:
+	void _Init() override
+	{
+		static const char *turnNames[] = { "Snap", "Smooth" };
+		static const float turnValues[] = { 0, 1 };
+		static const char *dirNames[] = { "Head", "Off hand" };
+		static const float walkValues[] = { 1, 0 };
+		static const char *handNames[] = { "Right", "Left" };
+		static const float handValues[] = { 0, 10 };
+
+		banner.szName = L( "Comfort and movement" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		Heading( L( "Turning" ));
+		Choice( L( "Turn mode" ), "vr_smoothturn", "1", 2, turnNames, turnValues );
+		Number( L( "Snap angle / speed" ), "vr_turn_angle", "45", 15, 90, 5, 0, "\xc2\xb0" );
+		Number( L( "Right stick dead zone" ), "vr_thumbstick_deadzone_right", "0.8", 30, 95, 5, 0, " %", 100.0f );
+		Number( L( "Comfort mask" ), "vr_comfort_mask", "0", 0, 100, 5, 0, " %", 100.0f );
+
+		NextColumn();
+		Heading( L( "Body" ));
+		Check( L( "Room-scale walking (6DoF)" ), "vr_6dof", "1" );
+		Number( L( "Extra eye height" ), "vr_height_adjust", "0.1", -30, 50, 1, 0, " cm", 100.0f );
+		Choice( L( "Walk direction" ), "vr_walkdirection", "1", 2, dirNames, walkValues );
+		Choice( L( "Weapon hand" ), "vr_control_scheme", "0", 2, handNames, handValues );
+	}
+};
+
+class CMenuVRCSWeapons : public CMenuVRPage
+{
+public:
+	CMenuVRCSWeapons() : CMenuVRPage( "CMenuVRCSWeapons" ) { }
+private:
+	void _Init() override
+	{
+		static const char *gripNames[] = { "Grip (palm)", "Aim point" };
+		static const float gripValues[] = { 1, 0 };
+
+		banner.szName = L( "Weapons" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		Heading( L( "Aiming" ));
+		CMenuCheckBox *dot = Check( L( "Aim dot" ), "vr_aimdot", "1" );
+		DependsOn( Number( L( "Aim dot size" ), "vr_aimdot_scale", "0.1", 0.02f, 0.5f, 0.02f, 2 ), dot );
+		Check( L( "Shots go where the barrel points" ), "vr_cs_converge", "1" );
+		Choice( L( "Weapon held at" ), "vr_cs_grip_origin", "1", 2, gripNames, gripValues );
+		Heading( L( "Grenades" ));
+		Number( L( "Throw strength" ), "vr_throw_scale", "3.75", 1.0f, 8.0f, 0.25f, 2, "x" );
+
+		NextColumn();
+		Heading( L( "Feel" ));
+		Check( L( "Controller haptics" ), "vr_haptics_enable", "1" );
+		Heading( L( "Weapon grip calibration" ));
+		Check( L( "Right stick adjusts the grip" ), "vr_weapon_calibration_on", "0" );
+		Heading( L( "(left/right picks the value, up/down" ));
+		Heading( L( " changes it; turn it off to play)" ));
+	}
+};
+
+class CMenuVRCSHandHud : public CMenuVRPage
+{
+public:
+	CMenuVRCSHandHud() : CMenuVRPage( "CMenuVRCSHandHud" ) { }
+private:
+	void _Init() override
+	{
+		banner.szName = L( "Hand HUD" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		// left column: the watch on the off hand, right column: the weapon hand
+		Heading( L( "Watch: radar (off hand)" ));
+		CMenuVRSpin *size = Number( L( "Radar size" ), "vr_hud_radar_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f );
+		CMenuVRSpin *strip = Number( L( "Numbers size" ), "vr_hud_strip_scale", "0.0004", 50, 200, 5, 0, " %", 250000.0f );
+		CMenuVRSpin *tilt = Number( L( "Tilt" ), "vr_hud_radar_tilt", "-75", -90, 90, 5, 0, "\xc2\xb0" );
+		CMenuVRSpin *yaw = Number( L( "Turn inwards" ), "vr_hud_radar_yaw", "0", -180, 180, 5, 0, "\xc2\xb0" );
+		Position( NULL, "vr_hud_radar_offset", "0 0.02 0.08" );
+
+		NextColumn();
+		CMenuCheckBox *hands = Check( L( "HUD on the hands" ), "vr_hud_hands", "1" );
+		DependsOn( size, hands );
+		DependsOn( strip, hands );
+		DependsOn( tilt, hands );
+		DependsOn( yaw, hands );
+		Heading( L( "Ammo panel (weapon hand)" ));
+		DependsOn( Number( L( "Size" ), "vr_hud_ammo_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f ), hands );
+		DependsOn( Number( L( "Tilt" ), "vr_hud_ammo_tilt", "0", -90, 90, 5, 0, "\xc2\xb0" ), hands );
+		DependsOn( Number( L( "Turn inwards" ), "vr_hud_ammo_yaw", "20", -180, 180, 5, 0, "\xc2\xb0" ), hands );
+		Position( NULL, "vr_hud_ammo_offset", "-0.01 0.02 -0.05" );
+		Heading( L( "Close the menu to see a change" ));
+	}
+};
+
+class CMenuVRCSGrid : public CMenuVRPage
+{
+public:
+	CMenuVRCSGrid() : CMenuVRPage( "CMenuVRCSGrid" ) { }
+private:
+	void _Init() override
+	{
+		banner.szName = L( "Weapon grid" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		Heading( L( "Weapon grid (hold Triangle)" ));
+		Number( L( "Size" ), "vr_weapon_pointer_scale", "0.00065", 50, 200, 5, 0, " %", 200000.0f );
+		Number( L( "Tilt" ), "vr_hud_hand_tilt", "-20", -90, 90, 5, 0, "\xc2\xb0" );
+		Number( L( "Turn inwards" ), "vr_weapon_pointer_yaw", "40", -180, 180, 5, 0, "\xc2\xb0" );
+
+		NextColumn();
+		Position( L( "Position from the off hand" ), "vr_weapon_pointer_offset", "0 0.035 -0.35" );
+		Heading( L( "Close the menu to see a change" ));
+	}
+};
+
+class CMenuVRCSBots : public CMenuVRPage
+{
+public:
+	CMenuVRCSBots() : CMenuVRPage( "CMenuVRCSBots" ) { }
+private:
+	void _Init() override
+	{
+		static const char *skillNames[] = { "Easy", "Normal", "Hard", "Expert" };
+		static const float skillValues[] = { 0, 1, 2, 3 };
+
+		banner.szName = L( "Bots" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		Heading( L( "Offline games (New Game)" ));
+		CMenuCheckBox *bots = Check( L( "Fill both teams with bots" ), "vr_cs_bots", "1" );
+		DependsOn( Number( L( "Number of bots" ), "vr_cs_bot_count", "15", 1, 31, 1 ), bots );
+		DependsOn( Choice( L( "Difficulty" ), "vr_cs_bot_difficulty", "1", 4, skillNames, skillValues ), bots );
+		Number( L( "Round end after death" ), "vr_cs_skip_dead_round", "3", 0, 30, 1, 0, " s" );
+
+		NextColumn();
+		Heading( L( "The number applies at once," ));
+		Heading( L( "difficulty to bots added later." ));
+		Heading( L( "More bots than free slots: start" ));
+		Heading( L( "a New Game with more Max players." ));
+		Heading( L( "Round end 0 s = watch the round out." ));
+	}
+};
+
+ADD_MENU( menu_vr_cs_comfort, CMenuVRCSComfort, UI_VRCSComfort_Menu );
+ADD_MENU( menu_vr_cs_weapons, CMenuVRCSWeapons, UI_VRCSWeapons_Menu );
+ADD_MENU( menu_vr_cs_handhud, CMenuVRCSHandHud, UI_VRCSHandHud_Menu );
+ADD_MENU( menu_vr_cs_grid, CMenuVRCSGrid, UI_VRCSGrid_Menu );
+ADD_MENU( menu_vr_cs_bots, CMenuVRCSBots, UI_VRCSBots_Menu );
+
+/*
  * Options -> VR
  */
 class CMenuVR : public CMenuFramework
@@ -599,6 +764,24 @@ private:
 	{
 		banner.szName = L( "VR" );
 		AddItem( banner );
+		if( UI_VRIsCounterStrike( ))
+		{
+			AddButton( L( "Comfort and movement" ), L( "Turning, walking and height" ),
+				"gfx/shell/btn_vr_comfort", UI_VRCSComfort_Menu, QMF_NOTIFY );
+			AddButton( L( "Weapons" ), L( "Aim dot, grip, grenade throw, haptics, calibration" ),
+				"gfx/shell/btn_vr_weapons", UI_VRCSWeapons_Menu, QMF_NOTIFY );
+			AddButton( L( "Hand HUD" ), L( "Radar watch, numbers and ammo on your hands" ),
+				"gfx/shell/btn_vr_handhud", UI_VRCSHandHud_Menu, QMF_NOTIFY );
+			AddButton( L( "Weapon grid" ), L( "The weapon grid on Triangle" ),
+				"gfx/shell/btn_vr_grid", UI_VRCSGrid_Menu, QMF_NOTIFY );
+			AddButton( L( "Bots" ), L( "Bots in offline games: how many, how good" ),
+				"gfx/shell/btn_vr_bots", UI_VRCSBots_Menu, QMF_NOTIFY );
+			AddButton( L( "Recenter" ), L( "Make where you stand and look now the centre" ),
+				"gfx/shell/btn_vr_recenter", CEventCallback( 0, "vr_recenter\n" ), QMF_NOTIFY );
+			AddButton( L( "Done" ), L( "Go back to Options" ),
+				PC_DONE, VoidCb( &CMenuVR::SaveAndPopMenu ), QMF_NOTIFY );
+			return;
+		}
 		AddButton( L( "Comfort and movement" ), L( "Turning, walking, height and crouching" ),
 			"gfx/shell/btn_vr_comfort", UI_VRComfort_Menu, QMF_NOTIFY );
 		AddButton( L( "Weapons" ), L( "Laser, weapon selection, timing, hands" ),
