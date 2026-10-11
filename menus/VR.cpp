@@ -746,7 +746,38 @@ private:
 	}
 };
 
+class CMenuVRCSScreen : public CMenuVRPage
+{
+public:
+	CMenuVRCSScreen() : CMenuVRPage( "CMenuVRCSScreen" ) { }
+private:
+	void _Init() override
+	{
+		banner.szName = L( "HUD and scope" );
+		AddItem( banner );
+		AddCommonButtons();
+
+		Heading( L( "HUD and menu panel" ));
+		Number( L( "Distance" ), "vr_ui_distance", "2.2", 0.5f, 5.0f, 0.1f, 1, " m" );
+		Number( L( "Width" ), "vr_ui_width", "2.6", 0.5f, 6.0f, 0.1f, 1, " m" );
+		Number( L( "Follow head beyond" ), "vr_panel_head_angle", "70", 0, 180, 5, 0, "\xc2\xb0" );
+		Number( L( "HUD glow" ), "vr_ui_glow_curve", "1.6", 0.5f, 4.0f, 0.1f, 1 );
+		Heading( L( "Head-locked HUD position" ));
+		Number( L( "Sideways" ), "vr_ui_offset_x", "-0.1", -100, 100, 1, 0, " cm", 100.0f );
+		Number( L( "Up" ), "vr_ui_offset_y", "0", -100, 100, 1, 0, " cm", 100.0f );
+		Check( L( "Console messages top left" ), "vr_notify", "0" );
+
+		NextColumn();
+		Heading( L( "Scope lens (weapon hand)" ));
+		Number( L( "Size" ), "vr_scope_size", "0.05", 2, 15, 0.5f, 1, " cm", 100.0f );
+		Position( NULL, "vr_scope_offset", "0 0.06 -0.08" );
+		Heading( L( "Rendering (after a restart)" ));
+		Number( L( "Resolution" ), "vr_supersampling", "1.0", 0.5f, 2.0f, 0.1f, 1, "x" );
+	}
+};
+
 ADD_MENU( menu_vr_cs_comfort, CMenuVRCSComfort, UI_VRCSComfort_Menu );
+ADD_MENU( menu_vr_cs_screen, CMenuVRCSScreen, UI_VRCSScreen_Menu );
 ADD_MENU( menu_vr_cs_weapons, CMenuVRCSWeapons, UI_VRCSWeapons_Menu );
 ADD_MENU( menu_vr_cs_handhud, CMenuVRCSHandHud, UI_VRCSHandHud_Menu );
 ADD_MENU( menu_vr_cs_grid, CMenuVRCSGrid, UI_VRCSGrid_Menu );
@@ -776,6 +807,8 @@ private:
 				"gfx/shell/btn_vr_grid", UI_VRCSGrid_Menu, QMF_NOTIFY );
 			AddButton( L( "Bots" ), L( "Bots in offline games: how many, how good" ),
 				"gfx/shell/btn_vr_bots", UI_VRCSBots_Menu, QMF_NOTIFY );
+			AddButton( L( "HUD and scope" ), L( "HUD and menu panel, scope lens, resolution" ),
+				"gfx/shell/btn_vr_screen", UI_VRCSScreen_Menu, QMF_NOTIFY );
 			AddButton( L( "Recenter" ), L( "Make where you stand and look now the centre" ),
 				"gfx/shell/btn_vr_recenter", CEventCallback( 0, "vr_recenter\n" ), QMF_NOTIFY );
 			AddButton( L( "Done" ), L( "Go back to Options" ),
