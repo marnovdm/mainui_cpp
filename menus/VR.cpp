@@ -650,6 +650,8 @@ private:
 		Choice( L( "Weapon held at" ), "vr_cs_grip_origin", "1", 2, gripNames, gripValues );
 		Heading( L( "Grenades" ));
 		Number( L( "Throw strength" ), "vr_throw_scale", "3.75", 1.0f, 8.0f, 0.25f, 2, "x" );
+		// the fastest hand speed in this time before the release counts (0 = the release frame, as in Half-Life)
+		Number( L( "Throw speed from the last" ), "vr_throw_window", "0.1", 0, 300, 20, 0, " ms", 1000.0f );
 
 		NextColumn();
 		Heading( L( "Feel" ));
@@ -678,6 +680,7 @@ private:
 		CMenuVRSpin *strip = Number( L( "Numbers size" ), "vr_hud_strip_scale", "0.0004", 50, 200, 5, 0, " %", 250000.0f );
 		CMenuVRSpin *tilt = Number( L( "Tilt" ), "vr_hud_radar_tilt", "-75", -90, 90, 5, 0, "\xc2\xb0" );
 		CMenuVRSpin *yaw = Number( L( "Turn inwards" ), "vr_hud_radar_yaw", "0", -180, 180, 5, 0, "\xc2\xb0" );
+		CMenuVRSpin *spin = Number( L( "Rotate" ), "vr_hud_radar_spin", "90", -180, 180, 15, 0, "\xc2\xb0" );
 		Position( NULL, "vr_hud_radar_offset", "0 0.02 0.08" );
 
 		NextColumn();
@@ -686,6 +689,7 @@ private:
 		DependsOn( strip, hands );
 		DependsOn( tilt, hands );
 		DependsOn( yaw, hands );
+		DependsOn( spin, hands );
 		Heading( L( "Ammo panel (weapon hand)" ));
 		DependsOn( Number( L( "Size" ), "vr_hud_ammo_scale", "0.0005", 50, 200, 5, 0, " %", 200000.0f ), hands );
 		DependsOn( Number( L( "Tilt" ), "vr_hud_ammo_tilt", "0", -90, 90, 5, 0, "\xc2\xb0" ), hands );
