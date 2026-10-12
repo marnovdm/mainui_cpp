@@ -430,7 +430,7 @@ private:
 		static const char *dirNames[] = { "Head", "Off hand" };
 		static const float walkValues[] = { 1, 0 };
 		static const float ladderValues[] = { 0, 1 };
-		static const char *layoutNames[] = { "HL2VR", "Lambda1VR" };
+		static const char *layoutNames[] = { "Cross jumps, Circle ducks", "Circle jumps, Cross ducks" };
 		static const float layoutValues[] = { 1, 0 };
 		static const char *handNames[] = { "Right", "Left" };
 		static const float handValues[] = { 0, 10 };
