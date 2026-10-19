@@ -455,6 +455,7 @@ private:
 		NextColumn();
 		Heading( L( "Movement and buttons" ));
 		Choice( L( "Walk direction" ), "vr_walkdirection", "1", 2, dirNames, walkValues );
+		Check( L( "Climb ladders with the hands" ), "vr_hand_ladders", "1" ); // grip on the ladder + pull
 		Choice( L( "Ladder direction" ), "vr_ladder_aim", "0", 2, dirNames, ladderValues );
 		Choice( L( "Jump / duck buttons" ), "vr_swap_jumpduck", "1", 2, layoutNames, layoutValues );
 		Choice( L( "Weapon hand" ), "vr_control_scheme", "0", 2, handNames, handValues );
@@ -489,6 +490,7 @@ private:
 		Number( L( "Crowbar pitch" ), "vr_crowbar_pitchadjust", "-25", -45, 10, 1, 0, "\xc2\xb0" );
 		Check( L( "Scope stabilisation" ), "vr_scope_stabilise", "1" );
 		Heading( L( "Hands" ));
+		Check( L( "Use by touching" ), "vr_touch_use", "1" ); // buttons, use-only doors, chargers
 		CMenuCheckBox *reach = Check( L( "Use by reaching out" ), "vr_gesture_triggered_use", "1" );
 		DependsOn( Number( L( "Reach distance" ), "vr_use_gesture_boundary", "0.25", 15, 60, 1, 0, " cm", 100.0f ), reach );
 		Check( L( "Haptic bumps (backpack, edges)" ), "vr_controller_tracking_haptic", "1" );
