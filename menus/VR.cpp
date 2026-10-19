@@ -430,6 +430,8 @@ private:
 		static const char *dirNames[] = { "Head", "Off hand" };
 		static const float walkValues[] = { 1, 0 };
 		static const float ladderValues[] = { 0, 1 };
+		static const char *climbNames[] = { "Stick only", "Hands and stick", "Hands only" };
+		static const float climbValues[] = { 0, 1, 2 };
 		static const char *layoutNames[] = { "Cross jumps, Circle ducks", "Circle jumps, Cross ducks" };
 		static const float layoutValues[] = { 1, 0 };
 		static const char *handNames[] = { "Right", "Left" };
@@ -455,7 +457,7 @@ private:
 		NextColumn();
 		Heading( L( "Movement and buttons" ));
 		Choice( L( "Walk direction" ), "vr_walkdirection", "1", 2, dirNames, walkValues );
-		Check( L( "Climb ladders with the hands" ), "vr_hand_ladders", "1" ); // grip on the ladder + pull
+		Choice( L( "Ladder climbing" ), "vr_hand_ladders", "1", 3, climbNames, climbValues ); // grip + pull
 		Choice( L( "Ladder direction" ), "vr_ladder_aim", "0", 2, dirNames, ladderValues );
 		Choice( L( "Jump / duck buttons" ), "vr_swap_jumpduck", "1", 2, layoutNames, layoutValues );
 		Choice( L( "Weapon hand" ), "vr_control_scheme", "0", 2, handNames, handValues );
