@@ -491,8 +491,6 @@ private:
 		Check( L( "Scope stabilisation" ), "vr_scope_stabilise", "1" );
 		Heading( L( "Hands" ));
 		Check( L( "Use by touching" ), "vr_touch_use", "1" ); // buttons, use-only doors, chargers
-		CMenuCheckBox *reach = Check( L( "Use by reaching out" ), "vr_gesture_triggered_use", "1" );
-		DependsOn( Number( L( "Reach distance" ), "vr_use_gesture_boundary", "0.25", 15, 60, 1, 0, " cm", 100.0f ), reach );
 		Check( L( "Haptic bumps (backpack, edges)" ), "vr_controller_tracking_haptic", "1" );
 
 		NextColumn();
